@@ -1,0 +1,424 @@
+/* ============================================================
+   Aurora Navigator — Premium glassmorphism navigation UI
+   ============================================================ */
+
+:root {
+  --bg-0: #0a0e1a;
+  --bg-1: #0f1424;
+  --text: #eaf0ff;
+  --text-dim: #a8b2cf;
+  --glass-bg: rgba(20, 26, 48, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.06);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --shadow-lg: 0 20px 60px -20px rgba(0, 0, 0, 0.6),
+               0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  --shadow-sm: 0 4px 16px -4px rgba(0, 0, 0, 0.3);
+
+  --accent-1: #7c5cff;     /* violet */
+  --accent-2: #00d4ff;     /* cyan  */
+  --accent-3: #ff6ec7;     /* pink  */
+  --gradient-accent: linear-gradient(135deg, #7c5cff 0%, #00d4ff 100%);
+  --gradient-warm:   linear-gradient(135deg, #ff6ec7 0%, #ffb86b 100%);
+
+  --start-color: #00d4ff;
+  --end-color:   #ff6ec7;
+
+  --radius-lg: 22px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+[data-theme="light"] {
+  --bg-0: #eef2ff;
+  --bg-1: #f7f9ff;
+  --text: #0c1330;
+  --text-dim: #5a6588;
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(12, 19, 48, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.6);
+  --input-bg: rgba(255, 255, 255, 0.7);
+  --input-border: rgba(12, 19, 48, 0.08);
+  --shadow-lg: 0 20px 60px -20px rgba(40, 50, 100, 0.25),
+               0 8px 24px -8px rgba(40, 50, 100, 0.15);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: var(--text);
+  background: var(--bg-0);
+  overflow: hidden;
+  transition: background-color .6s var(--ease), color .4s var(--ease);
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input  { font-family: inherit; }
+
+/* ---------- Background animated blobs ---------- */
+.bg-blobs {
+  position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+}
+.blob {
+  position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55;
+  animation: float 18s ease-in-out infinite;
+}
+.blob-1 { width: 480px; height: 480px; background: var(--accent-1); top: -120px; left: -120px; }
+.blob-2 { width: 520px; height: 520px; background: var(--accent-2); bottom: -160px; right: -140px; animation-delay: -6s; }
+.blob-3 { width: 380px; height: 380px; background: var(--accent-3); top: 40%; left: 55%; animation-delay: -12s; opacity: .35; }
+
+[data-theme="light"] .blob { opacity: .35; }
+
+@keyframes float {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(40px, -30px) scale(1.08); }
+  66%      { transform: translate(-30px, 40px) scale(.95); }
+}
+
+/* ---------- Map ---------- */
+#map {
+  position: absolute; inset: 0; z-index: 1;
+  transition: filter .5s var(--ease);
+}
+.maplibregl-ctrl-attrib { font-size: 10px !important; }
+
+/* ---------- Glass utility ---------- */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  z-index: 10;
+  display: flex; align-items: center; gap: 18px;
+  padding: 10px 14px 10px 16px;
+  border-radius: 999px;
+}
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand-mark {
+  width: 34px; height: 34px; border-radius: 12px;
+  display: grid; place-items: center;
+  background: var(--gradient-accent);
+  color: white;
+  box-shadow: 0 6px 18px -4px rgba(124,92,255,.6);
+}
+.brand-text { display: flex; flex-direction: column; line-height: 1; }
+.brand-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700; font-size: 16px; letter-spacing: .3px;
+}
+.brand-sub { font-size: 10px; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+
+.topbar-actions { display: flex; gap: 8px; }
+.icon-btn {
+  width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--input-bg); border: 1px solid var(--input-border);
+  transition: transform .2s var(--ease), background .3s var(--ease);
+}
+.icon-btn:hover { transform: scale(1.08) rotate(8deg); }
+.icon-sun { display: none; }
+[data-theme="light"] .icon-sun { display: block; }
+[data-theme="light"] .icon-moon { display: none; }
+
+/* ... [Keep root and body variables the same] ... */
+
+/* ---------- Panel ---------- */
+.panel {
+  position: absolute; 
+  top: 80px; 
+  left: 22px; 
+  z-index: 10;
+  width: 380px; 
+  max-width: calc(100vw - 44px);
+  max-height: calc(100vh - 110px);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  display: flex; 
+  flex-direction: column; 
+  gap: 16px;
+  overflow-y: auto;
+  /* Smoother transition */
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s var(--ease);
+  animation: slideIn .7s var(--ease) both;
+}
+
+/* FIX: Moves the panel left, but leaves room for the button */
+.panel.collapsed { 
+  transform: translateX(calc(-100% - 22px)); 
+}
+
+.collapse-btn {
+  position: absolute; 
+  top: 50%; 
+  /* Move button so it sits outside the panel right edge */
+  right: -14px; 
+  transform: translateY(-50%);
+  width: 32px; 
+  height: 32px; 
+  border-radius: 50%;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  display: grid; 
+  place-items: center;
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(20px);
+  z-index: 20;
+  transition: all 0.3s var(--ease);
+}
+
+/* Rotate the arrow when collapsed */
+.panel.collapsed .collapse-btn {
+  right: -40px; /* Adjust so it's fully visible when panel is gone */
+}
+
+.panel.collapsed .collapse-btn svg { 
+  transform: rotate(180deg); 
+}
+
+.collapse-btn:hover { 
+  background: var(--accent-1); 
+  color: white; 
+  transform: translateY(-50%) scale(1.1); 
+}
+
+/* ... [Keep rest of the file same] ... */
+
+.panel-header { display: flex; flex-direction: column; gap: 4px; }
+.panel-title {
+  margin: 0; font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px; font-weight: 700; letter-spacing: -.3px;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.panel-subtitle { margin: 0; font-size: 13px; color: var(--text-dim); }
+
+/* ---------- Form ---------- */
+.form { display: flex; flex-direction: column; gap: 14px; }
+
+.field-group { display: flex; flex-direction: column; gap: 8px; }
+.field-label {
+  display: flex; align-items: center; gap: 8px; font-size: 12px;
+  text-transform: uppercase; letter-spacing: 1.2px; color: var(--text-dim);
+}
+.field-label label { font-weight: 600; }
+.field-label .ghost-btn { margin-left: auto; }
+
+.dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 0 3px rgba(255,255,255,.05); }
+.dot-start { background: var(--start-color); box-shadow: 0 0 12px var(--start-color); }
+.dot-end   { background: var(--end-color);   box-shadow: 0 0 12px var(--end-color); }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.input-wrap { position: relative; }
+.input-wrap input {
+  width: 100%; padding: 12px 32px 12px 12px;
+  background: var(--input-bg); border: 1px solid var(--input-border);
+  border-radius: var(--radius-md); color: var(--text);
+  font-size: 14px; font-weight: 500; outline: none;
+  transition: border-color .2s var(--ease), background .2s var(--ease), box-shadow .2s var(--ease);
+}
+.input-wrap input::placeholder { color: var(--text-dim); font-weight: 400; }
+.input-wrap input:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, .15);
+}
+.input-wrap input.invalid {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 3px rgba(255, 107, 107, .15);
+}
+.copy-btn {
+  position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+  width: 24px; height: 24px; border-radius: 6px;
+  display: grid; place-items: center; color: var(--text-dim);
+  transition: color .2s var(--ease), background .2s var(--ease);
+}
+.copy-btn:hover { color: var(--text); background: var(--input-border); }
+
+.ghost-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11px; font-weight: 600; padding: 5px 9px;
+  border-radius: 999px; color: var(--accent-2);
+  background: rgba(0, 212, 255, .08);
+  border: 1px solid rgba(0, 212, 255, .2);
+  text-transform: none; letter-spacing: .2px;
+  transition: background .2s var(--ease), transform .2s var(--ease);
+}
+.ghost-btn:hover { background: rgba(0, 212, 255, .18); transform: translateY(-1px); }
+
+/* Swap */
+.swap-row { display: flex; justify-content: center; margin: -6px 0; }
+.swap-btn {
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--input-bg); border: 1px solid var(--input-border);
+  display: grid; place-items: center; color: var(--text-dim);
+  transition: transform .4s var(--ease), color .2s var(--ease), background .2s var(--ease);
+}
+.swap-btn:hover { transform: rotate(180deg); color: var(--accent-1); background: rgba(124,92,255,.1); }
+
+/* Profile */
+.profile-row {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+  background: var(--input-bg); padding: 4px; border-radius: var(--radius-md);
+  border: 1px solid var(--input-border);
+}
+.profile-opt { position: relative; cursor: pointer; }
+.profile-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.profile-opt span {
+  display: block; text-align: center; padding: 8px 6px;
+  font-size: 12px; font-weight: 600; border-radius: 8px;
+  color: var(--text-dim); transition: all .25s var(--ease);
+}
+.profile-opt input:checked + span {
+  background: var(--gradient-accent); color: white;
+  box-shadow: 0 4px 12px -2px rgba(124,92,255,.5);
+}
+
+/* Primary button */
+.primary-btn {
+  position: relative; padding: 14px;
+  border-radius: var(--radius-md); font-weight: 700; font-size: 14px;
+  color: white; background: var(--gradient-accent);
+  letter-spacing: .3px;
+  box-shadow: 0 8px 24px -8px rgba(124,92,255,.6);
+  transition: transform .2s var(--ease), box-shadow .2s var(--ease), filter .2s var(--ease);
+  overflow: hidden;
+}
+.primary-btn::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,.25), transparent);
+  transform: translateX(-100%); transition: transform .8s var(--ease);
+}
+.primary-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 32px -8px rgba(124,92,255,.7); }
+.primary-btn:hover::before { transform: translateX(100%); }
+.primary-btn:active { transform: translateY(0); }
+.primary-btn[disabled] { filter: saturate(.6) brightness(.85); cursor: wait; }
+
+.spinner {
+  display: none; width: 16px; height: 16px; margin-left: 8px;
+  border: 2px solid rgba(255,255,255,.4); border-top-color: white;
+  border-radius: 50%; animation: spin .8s linear infinite;
+  vertical-align: middle;
+}
+.primary-btn.loading .spinner { display: inline-block; }
+.primary-btn.loading .btn-label { opacity: .85; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Error box */
+.error-box {
+  padding: 10px 12px; border-radius: var(--radius-sm);
+  background: rgba(255, 107, 107, .12);
+  border: 1px solid rgba(255, 107, 107, .3);
+  color: #ff8a8a; font-size: 13px;
+  animation: shake .4s var(--ease);
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  75% { transform: translateX(6px); }
+}
+
+/* Stats */
+.stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+  padding: 14px; border-radius: var(--radius-md);
+  background: var(--input-bg); border: 1px solid var(--input-border);
+  animation: fadeUp .5s var(--ease);
+}
+@keyframes fadeUp { from { opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+.stat { display: flex; flex-direction: column; gap: 4px; }
+.stat-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1.2px; }
+.stat-value {
+  font-family: 'Space Grotesk', sans-serif; font-size: 20px; font-weight: 700;
+  background: var(--gradient-accent);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+
+/* Footer */
+.panel-footer {
+  font-size: 11px; color: var(--text-dim); text-align: center; margin-top: 4px;
+}
+kbd {
+  font-family: 'Space Grotesk', monospace; font-size: 10px;
+  padding: 2px 6px; border-radius: 5px;
+  background: var(--input-bg); border: 1px solid var(--input-border);
+  color: var(--text);
+}
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px);
+  z-index: 50; padding: 10px 16px; border-radius: 999px;
+  font-size: 13px; font-weight: 500;
+  opacity: 0; pointer-events: none;
+  transition: opacity .3s var(--ease), transform .3s var(--ease);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* Marker tooltip */
+.marker-pin {
+  width: 28px; height: 28px; border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
+  display: grid; place-items: center;
+  box-shadow: 0 6px 16px -4px rgba(0,0,0,.5), 0 0 0 4px rgba(255,255,255,.15);
+  cursor: pointer;
+  transition: transform .25s var(--ease);
+}
+.marker-pin:hover { transform: rotate(-45deg) scale(1.15); }
+.marker-pin::after {
+  content: ''; width: 10px; height: 10px; border-radius: 50%;
+  background: white; transform: rotate(45deg);
+}
+.marker-start { background: var(--start-color); }
+.marker-end   { background: var(--end-color); }
+
+.maplibregl-popup-content {
+  background: var(--glass-bg) !important;
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px !important;
+  color: var(--text) !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 12px !important;
+  font-weight: 600;
+  padding: 8px 12px !important;
+  box-shadow: var(--shadow-sm);
+}
+.maplibregl-popup-tip { display: none; }
+
+/* Responsive */
+@media (max-width: 640px) {
+  .panel { left: 12px; right: 12px; width: auto; top: 76px; max-height: 60vh; padding: 18px; }
+  .topbar { top: 12px; }
+  .brand-text { display: none; }
+}
+
+
+/* The main panel state */
+#panel {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* The state when the 'collapsed' class is added via JS */
+#panel.collapsed {
+  transform: translateX(-100%); /* Moves the panel off-screen to the left */
+}
+
+/* Adjust the collapse button so it stays visible or moves with the panel */
+#collapseBtn {
+  /* Ensure this button is inside the panel or positioned to remain clickable */
+  cursor: pointer;
+}
